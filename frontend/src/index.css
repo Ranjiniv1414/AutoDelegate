@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.font-display {
+    font-family: 'Outfit', sans-serif;
+}
+
+@layer base {
+    :root {
+        --background: 220 33% 98%;
+        --foreground: 222 39% 8%;
+        --card: 0 0% 100%;
+        --card-foreground: 222 39% 8%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 39% 8%;
+        --primary: 239 84% 67%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 220 20% 94%;
+        --secondary-foreground: 222 39% 12%;
+        --muted: 220 20% 94%;
+        --muted-foreground: 220 9% 46%;
+        --accent: 239 84% 95%;
+        --accent-foreground: 239 84% 40%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 220 16% 88%;
+        --input: 220 16% 88%;
+        --ring: 239 84% 67%;
+        --radius: 0.75rem;
+    }
+    .dark {
+        --background: 222 39% 6%;
+        --foreground: 210 40% 98%;
+        --card: 222 33% 10%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222 33% 10%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 239 84% 67%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 217 19% 18%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217 19% 16%;
+        --muted-foreground: 220 9% 60%;
+        --accent: 239 40% 22%;
+        --accent-foreground: 239 84% 85%;
+        --destructive: 0 62% 45%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 217 19% 20%;
+        --input: 217 19% 20%;
+        --ring: 239 84% 67%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+/* Subtle grid + glow backdrop for the command-center feel */
+.ad-backdrop {
+    background-color: hsl(var(--background));
+    background-image:
+        radial-gradient(circle at 15% 10%, hsl(239 84% 67% / 0.10), transparent 40%),
+        radial-gradient(circle at 85% 0%, hsl(190 84% 55% / 0.08), transparent 35%),
+        linear-gradient(hsl(var(--border) / 0.4) 1px, transparent 1px),
+        linear-gradient(90deg, hsl(var(--border) / 0.4) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+}
+
+.glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+@keyframes ad-pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(239 84% 67% / 0.5); }
+    50% { box-shadow: 0 0 0 8px hsl(239 84% 67% / 0); }
+}
+.pulse-ring { animation: ad-pulse-ring 2s infinite; }
+
+@keyframes ad-fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: ad-fade-up 0.5s ease both; }
+
+@keyframes ad-amber-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+.amber-pulse { animation: ad-amber-pulse 1.8s ease-in-out infinite; }
+
+::selection { background: hsl(239 84% 67% / 0.3); }

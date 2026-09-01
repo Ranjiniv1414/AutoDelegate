@@ -1,0 +1,110 @@
+{
+  "project_name": "AutoDelegate - The Action-Oriented Meeting Agent",
+  "app_type": "saas_app",
+  "archetype": "THE PERFORMANCE PRO / COMMAND CENTER AI AGENT",
+  "theme": {
+    "default": "dark",
+    "toggle_supported": true,
+    "dark_background": "#0B0F17",
+    "dark_surface": "#111827",
+    "dark_surface_elevated": "#1F2937",
+    "dark_border": "#374151",
+    "light_background": "#F9FAFB",
+    "light_surface": "#FFFFFF",
+    "light_surface_elevated": "#F3F4F6",
+    "light_border": "#E5E7EB"
+  },
+  "colors": {
+    "primary": "#6366F1",
+    "primary_hover": "#4F46E5",
+    "primary_light": "#818CF8",
+    "accent_emerald": "#10B981",
+    "accent_amber": "#F59E0B",
+    "accent_rose": "#EF4444",
+    "accent_cyan": "#06B6D4",
+    "neutral_dark": "#0B0F17",
+    "neutral_card": "#111827",
+    "neutral_border": "rgba(255, 255, 255, 0.1)",
+    "text_primary_dark": "#F9FAFB",
+    "text_secondary_dark": "#9CA3AF",
+    "text_muted_dark": "#6B7280"
+  },
+  "typography": {
+    "font_family_heading": "Cabinet Grotesk, Outfit, sans-serif",
+    "font_family_body": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+    "font_family_mono": "JetBrains Mono, Fira Code, monospace",
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-semibold",
+      "h4": "text-lg sm:text-xl font-semibold",
+      "body": "text-base leading-relaxed",
+      "subtext": "text-sm text-gray-400",
+      "caption": "text-xs font-mono tracking-wider uppercase text-gray-400"
+    }
+  },
+  "layout_and_spacing": {
+    "spacing_scale": "Generous: p-4, p-6, p-8, p-12, gap-6, gap-8",
+    "pipeline_stepper": "6-Stage Interactive Stepper: MEETING -> UNDERSTAND -> REASON -> PLAN -> APPROVE -> EXECUTE",
+    "bento_grid_mode": "MODE B: High Density Command Center Grid with 12 columns responsive layout",
+    "container_padding": "px-4 sm:px-6 lg:px-8 py-8"
+  },
+  "key_views_to_implement": [
+    {
+      "id": "home",
+      "name": "Meeting Ingestion & Landing",
+      "elements": ["Brand Header", "Tagline: 'Turn meeting decisions into actions.'", "Audio File Dropzone with visual waveform preview", "Transcript Paste Box with sample meeting toggle", "Preset Sample Meetings button for instant testing", "Pipeline Stepper Preview", "Demo Mode Toggle Switch"]
+    },
+    {
+      "id": "speaker_mapping",
+      "name": "Speaker Diarization & Name Mapping",
+      "elements": ["Extracted voice signatures/speakers (Speaker 1, Speaker 2, Speaker 3)", "Input fields for assigning real names & roles/emails", "Sample audio clip play button per speaker", "Confirm Participants CTA button"]
+    },
+    {
+      "id": "meeting_analysis",
+      "name": "AI Meeting Analysis & Context",
+      "elements": ["Executive Summary Card", "Key Decisions List", "Opinions/Debates Highlights", "Extracted Action Items Matrix (Who, What, Deadline, Recommended Tool)", "Confidence Scores per extraction"]
+    },
+    {
+      "id": "action_approval",
+      "name": "Action Approval Dashboard",
+      "elements": ["Interactive Action Cards with Edit inline capability", "Status Badges: Pending Approval, Approved, Modified, Rejected", "Target Integrations: Jira, Gmail, Google Calendar, Slack", "Bulk Action Controls: Approve All, Reject All", "Execute Approved Actions CTA"]
+    },
+    {
+      "id": "execution_results",
+      "name": "API Execution Results Panel",
+      "elements": ["Jira Task Created (with mock ticket ID and quick link)", "Gmail Draft Created (recipient, subject, body snippet)", "Google Calendar Event Created (time slot, invitees)", "Failed / Retry Action handlers with error reason", "Download Execution Audit Log JSON/CSV"]
+    }
+  ],
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-gray-900/80 border border-white/10 shadow-2xl",
+    "tracing_beam": "Glowing active stage border transition in pipeline stepper",
+    "demo_mode_badge": "High contrast amber pulsing pill: 'DEMO MODE: SIMULATED API EXECUTION'",
+    "status_badges": {
+      "pending": "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+      "approved": "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+      "executed": "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
+      "failed": "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+    }
+  },
+  "image_urls": {
+    "meeting_hero_background": "https://images.unsplash.com/photo-1629904853716-f0bc54eea481?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjB0ZWFtJTIwbWVldGluZyUyMHRlY2glMjB3b3Jrc3BhY2V8ZW58MHx8fHwxNzg4MjkzMzMwfDA&ixlib=rb-4.1.0&q=85",
+    "team_collaboration": "https://images.unsplash.com/photo-1579389083395-4507e98b5e67?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjB0ZWFtJTIwbWVldGluZyUyMHRlY2glMjB3b3Jrc3BhY2V8ZW58MHx8fHwxNzg4MjkzMzMwfDA&ixlib=rb-4.1.0&q=85",
+    "avatars": [
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80"
+    ]
+  },
+  "universal_guidelines_for_main_agent": [
+    "Never use generic centered layouts or plain gradients without depth.",
+    "Ensure every interactive element has a valid data-testid attribute in kebab-case format.",
+    "Do NOT use transparent backgrounds in dropdowns, floating menus, or header navigation.",
+    "Provide interactive sample data so judges or viewers can test the end-to-end pipeline in one click.",
+    "Make the Demo Mode indicator prominently visible on top right or top banner.",
+    "Use Lucide React icons for tools like Jira, Gmail, Calendar, Check, Play, Edit, Trash, AlertCircle, ArrowRight.",
+    "Keep typography sharp and technical: monospace font for reasoning traces, timestamps, and confidence scores.",
+    "Maintain responsive grid layouts with mobile support (1 column on mobile, 2-3 columns on desktop)."
+  ]
+}
