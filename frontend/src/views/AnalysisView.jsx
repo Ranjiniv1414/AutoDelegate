@@ -4,6 +4,7 @@ import { FileText, CheckCircle2, MessageSquare, ListTodo, ArrowRight, Gauge } fr
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toolMeta } from "@/lib/tools";
+import { RoadmapSection } from "@/components/RoadmapSection";
 import { cn } from "@/lib/utils";
 
 const ListCard = ({ title, icon: Icon, items, accent, testid, empty }) => (
@@ -27,7 +28,7 @@ const ListCard = ({ title, icon: Icon, items, accent, testid, empty }) => (
   </Card>
 );
 
-export const AnalysisView = ({ meeting, onProceed }) => {
+export const AnalysisView = ({ meeting, onProceed, onGenerateRoadmap, roadmapLoading }) => {
   const actions = meeting.actions || [];
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -93,6 +94,9 @@ export const AnalysisView = ({ meeting, onProceed }) => {
           <p className="text-sm text-muted-foreground">No actionable commitments were extracted from this meeting.</p>
         )}
       </Card>
+
+      {/* Project roadmap */}
+      <RoadmapSection roadmap={meeting.roadmap} onGenerate={onGenerateRoadmap} loading={roadmapLoading} />
 
       <div className="flex justify-end">
         <Button size="lg" onClick={onProceed} disabled={!actions.length} data-testid="proceed-to-approval-button">

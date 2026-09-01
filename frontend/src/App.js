@@ -11,7 +11,7 @@ import { ApprovalView } from "@/views/ApprovalView";
 import { ExecutionView } from "@/views/ExecutionView";
 import { MeetingHistory } from "@/components/MeetingHistory";
 import {
-  uploadAudio, createMeeting, analyzeMeeting, editAction, executeAction,
+  uploadAudio, createMeeting, analyzeMeeting, editAction, executeAction, generateRoadmap,
 } from "@/lib/api";
 
 const STEP_STAGE = { home: 0, mapping: 1, analysis: 3, approval: 4, execution: 5 };
@@ -25,6 +25,7 @@ function App() {
   const [loadingMsg, setLoadingMsg] = useState("");
   const [busyIds, setBusyIds] = useState([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [roadmapLoading, setRoadmapLoading] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -132,6 +133,19 @@ function App() {
     toast.success(`Loaded "${m.title || "meeting"}"`);
   };
 
+  const handleGenerateRoadmap = async () => {
+    setRoadmapLoading(true);
+    try {
+      const m = await generateRoadmap(meeting.id);
+      setMeeting(m);
+      toast.success(`Roadmap ready — ${m.roadmap?.phases?.length || 0} phase(s).`);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Roadmap generation failed.");
+    } finally {
+      setRoadmapLoading(false);
+    }
+  };
+
   const stage = STEP_STAGE[step] ?? 0;
 
   return (
@@ -171,7 +185,12 @@ function App() {
           <SpeakerMappingView meeting={meeting} onConfirm={handleConfirmParticipants} loading={loading} />
         )}
         {step === "analysis" && meeting && (
-          <AnalysisView meeting={meeting} onProceed={() => setStep("approval")} />
+          <AnalysisView
+            meeting={meeting}
+            onProceed={() => setStep("approval")}
+            onGenerateRoadmap={handleGenerateRoadmap}
+            roadmapLoading={roadmapLoading}
+          />
         )}
         {step === "approval" && meeting && (
           <ApprovalView

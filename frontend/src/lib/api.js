@@ -24,6 +24,11 @@ export const analyzeMeeting = async (meeting_id, speaker_map) => {
   return data;
 };
 
+export const generateRoadmap = async (meeting_id) => {
+  const { data } = await http.post("/generate-roadmap", { meeting_id, speaker_map: {} });
+  return data;
+};
+
 export const editAction = async (payload) => {
   const { data } = await http.post("/edit-action", payload);
   return data;

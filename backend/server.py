@@ -210,6 +210,59 @@ async def analyze_transcript(transcript: str) -> dict:
     }
 
 
+ROADMAP_SYSTEM = (
+    "You are AutoDelegate's project strategist. Given a meeting transcript, its summary and the "
+    "extracted action items, produce a COMPLETE, execution-ready project roadmap for the project "
+    "discussed. Break the work into logical sequential phases with clear milestones, concrete tasks "
+    "(each with an owner drawn from the participants when possible and a deadline if implied), and "
+    "recommend REAL, widely-used existing tools for each task and an overall recommended stack. "
+    "Only suggest genuine tools that exist today (e.g. Jira, GitHub, GitLab, Figma, Notion, Slack, "
+    "Postman, Docker, Sentry, Vercel, Google Calendar, Linear, Confluence, Playwright) with their "
+    "correct official https URL. Do NOT invent tools or URLs. Infer the project even if only briefly "
+    "mentioned. Return ONLY valid JSON with this exact shape:\n"
+    "{\n"
+    '  "project_name": "short project title",\n'
+    '  "objective": "1-2 sentence objective",\n'
+    '  "recommended_stack": [{"name":"", "category":"", "why":"", "url":"https://"}],\n'
+    '  "phases": [\n'
+    "    {\n"
+    '      "name": "phase name",\n'
+    '      "timeline": "e.g. Week 1 or Days 1-3",\n'
+    '      "goal": "what this phase achieves",\n'
+    '      "milestone": "the deliverable that marks phase completion",\n'
+    '      "tasks": [\n'
+    '        {"task":"", "owner":"", "deadline":"", "recommended_tools":[{"name":"", "why":"", "url":"https://"}]}\n'
+    "      ]\n"
+    "    }\n"
+    "  ],\n"
+    '  "risks": ["key risk or blocker to watch"]\n'
+    "}"
+)
+
+
+async def generate_roadmap(transcript: str, summary: str, actions: list) -> dict:
+    actions_brief = [
+        {"person": a.get("person"), "task": a.get("task"), "deadline": a.get("deadline"), "tool": a.get("tool")}
+        for a in (actions or [])
+    ]
+    prompt = (
+        f"Meeting summary:\n{summary}\n\n"
+        f"Extracted action items:\n{json.dumps(actions_brief)}\n\n"
+        f"Full transcript:\n{transcript}\n\n"
+        "Build the project roadmap now."
+    )
+    data = await llm_json(ROADMAP_SYSTEM, prompt)
+    # normalise shape defensively
+    return {
+        "project_name": data.get("project_name", "Untitled Project"),
+        "objective": data.get("objective", ""),
+        "recommended_stack": data.get("recommended_stack", []) or [],
+        "phases": data.get("phases", []) or [],
+        "risks": data.get("risks", []) or [],
+        "generated_at": now_iso(),
+    }
+
+
 def apply_speaker_map(text: str, speaker_map: dict) -> str:
     if not speaker_map:
         return text
@@ -332,10 +385,29 @@ async def analyze_meeting(payload: AnalyzeIn):
         "opinions": result["opinions"],
         "information": result["information"],
         "actions": result["actions"],
+        "roadmap": None,
         "status": "analyzed",
         "analyzed_at": now_iso(),
     }
     await db.meetings.update_one({"id": payload.meeting_id}, {"$set": update})
+    return await get_meeting_or_404(payload.meeting_id)
+
+
+@api_router.post("/generate-roadmap")
+async def generate_roadmap_endpoint(payload: AnalyzeIn):
+    meeting = await get_meeting_or_404(payload.meeting_id)
+    if not meeting.get("summary"):
+        raise HTTPException(status_code=400, detail="Analyze the meeting before generating a roadmap")
+    try:
+        roadmap = await generate_roadmap(
+            meeting.get("transcript", ""),
+            meeting.get("summary", ""),
+            meeting.get("actions", []),
+        )
+    except Exception as e:
+        logger.error(f"Roadmap error: {e}")
+        raise HTTPException(status_code=500, detail=f"Roadmap generation failed: {e}")
+    await db.meetings.update_one({"id": payload.meeting_id}, {"$set": {"roadmap": roadmap}})
     return await get_meeting_or_404(payload.meeting_id)
 
 

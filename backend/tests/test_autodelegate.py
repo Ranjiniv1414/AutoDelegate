@@ -232,6 +232,88 @@ class TestSlackRoutingAndHistory:
         if len(data) >= 2:
             assert data[0]["created_at"] >= data[1]["created_at"]
 
+
+# ---- Roadmap generation ----
+PROJECT_TRANSCRIPT = """Ravi: Team, we are kicking off the Campus Food Delivery App project. Goal is a working MVP in 6 weeks so students can order from campus canteens.
+Priya: I'll own the backend APIs and database schema for orders, users, and menu items. I'll have the initial schema and auth ready by end of week 2.
+Arun: I'll take the React Native mobile app for students and drivers. First working screens by week 3.
+Meera: I'll design the UI/UX flows and a clickable prototype by end of week 1 so we can validate with users.
+Ravi: Great. We should also set up CI/CD and monitoring early so releases are smooth.
+Priya: Agreed, and we need a payment gateway integration — probably Razorpay — by week 4.
+Ravi: Let's target a closed beta on campus in week 5 and a public launch in week 6.
+"""
+
+
+@pytest.fixture(scope="module")
+def project_meeting_id(session):
+    r = session.post(f"{API}/meetings", json={"transcript": PROJECT_TRANSCRIPT, "title": "TEST_campus_food_project"})
+    assert r.status_code == 200, r.text
+    return r.json()["id"]
+
+
+class TestRoadmap:
+    def test_roadmap_before_analyze_400(self, session, project_meeting_id):
+        r = session.post(f"{API}/generate-roadmap",
+                         json={"meeting_id": project_meeting_id, "speaker_map": {}}, timeout=120)
+        assert r.status_code == 400, r.text
+
+    def test_roadmap_missing_meeting(self, session):
+        r = session.post(f"{API}/generate-roadmap",
+                         json={"meeting_id": "bogus-id", "speaker_map": {}}, timeout=30)
+        assert r.status_code == 404
+
+    def test_analyze_then_roadmap(self, session, project_meeting_id):
+        # analyze first
+        r = session.post(f"{API}/analyze-meeting",
+                         json={"meeting_id": project_meeting_id, "speaker_map": {}}, timeout=120)
+        assert r.status_code == 200, r.text
+        assert r.json().get("summary")
+
+        # then generate roadmap
+        r = session.post(f"{API}/generate-roadmap",
+                         json={"meeting_id": project_meeting_id, "speaker_map": {}}, timeout=180)
+        assert r.status_code == 200, r.text
+        meeting = r.json()
+        rm = meeting.get("roadmap")
+        assert rm, f"No roadmap in response: {meeting}"
+
+        # structural assertions
+        assert isinstance(rm.get("project_name"), str) and rm["project_name"].strip()
+        assert isinstance(rm.get("objective"), str) and rm["objective"].strip()
+
+        stack = rm.get("recommended_stack")
+        assert isinstance(stack, list) and len(stack) >= 1, f"empty stack: {rm}"
+        for i, s in enumerate(stack):
+            assert s.get("name"), f"stack[{i}] missing name"
+            assert s.get("url", "").startswith("https://"), f"stack[{i}].url not https: {s.get('url')}"
+
+        phases = rm.get("phases")
+        assert isinstance(phases, list) and len(phases) >= 2, f"expected >=2 phases: {phases}"
+        for i, p in enumerate(phases):
+            assert p.get("name"), f"phase[{i}] missing name"
+            assert p.get("milestone"), f"phase[{i}] missing milestone"
+            tasks = p.get("tasks", [])
+            assert isinstance(tasks, list) and len(tasks) >= 1, f"phase[{i}] no tasks"
+            for j, t in enumerate(tasks):
+                assert t.get("task"), f"phase[{i}].task[{j}] missing task"
+                assert "owner" in t
+                tools = t.get("recommended_tools", [])
+                assert isinstance(tools, list)
+                for k, tool in enumerate(tools):
+                    assert tool.get("name"), f"tool missing name in phase {i} task {j}"
+                    if tool.get("url"):
+                        assert tool["url"].startswith("https://"), f"tool url not https: {tool['url']}"
+
+        risks = rm.get("risks")
+        assert isinstance(risks, list) and len(risks) >= 1, f"no risks: {rm}"
+
+    def test_roadmap_persisted_on_get(self, session, project_meeting_id):
+        r = session.get(f"{API}/meeting/{project_meeting_id}")
+        assert r.status_code == 200
+        assert r.json().get("roadmap"), "roadmap not persisted"
+
+
+class TestSlackRoutingAndHistoryExtra:
     def test_edit_action_slack_type(self, session, meeting_id, analyzed):
         aid = analyzed["actions"][0]["id"]
         r = session.post(f"{API}/edit-action", json={

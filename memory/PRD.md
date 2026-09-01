@@ -41,6 +41,10 @@ clearly-labelled Demo Mode fallback.
 - Tested: 19/19 backend, 100% frontend (incl. regression).
 - **Real diarization — NOT delivered**: the Emergent Universal Key fal proxy only exposes `fal-ai/wizper`, which has NO speaker diarization (no `diarize` input, output chunks are timestamp+text only). `fal-ai/whisper` and ElevenLabs Scribe are blocked by the proxy policy (422). True voice diarization requires either a BYOK fal key (fal-ai/whisper with diarize) or a dedicated diarization provider. Current audio path = Whisper STT + LLM approximate segmentation (clearly labelled).
 
+### Iteration 3 (2026-09-01)
+- **Project Roadmap**: POST /api/generate-roadmap turns a project discussion into a phased plan (phases, milestones, tasks w/ owners+deadlines) and recommends REAL existing tools with official URLs. Rendered as a timeline in the Analysis view (RoadmapSection). Re-analyzing clears the stale roadmap.
+- Tested: 23/23 backend, 100% frontend.
+
 ## Backlog (P1/P2)
 - P1: Persist + list past meetings in a sidebar (endpoint exists).
 - P1: Real speaker diarization via a diarization model (currently LLM-approximate).
