@@ -29,6 +29,11 @@ export const generateRoadmap = async (meeting_id) => {
   return data;
 };
 
+export const roadmapToActions = async (meeting_id) => {
+  const { data } = await http.post("/roadmap-to-actions", { meeting_id, speaker_map: {} });
+  return data;
+};
+
 export const editAction = async (payload) => {
   const { data } = await http.post("/edit-action", payload);
   return data;

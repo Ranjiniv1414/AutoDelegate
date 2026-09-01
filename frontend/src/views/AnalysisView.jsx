@@ -28,7 +28,7 @@ const ListCard = ({ title, icon: Icon, items, accent, testid, empty }) => (
   </Card>
 );
 
-export const AnalysisView = ({ meeting, onProceed, onGenerateRoadmap, roadmapLoading }) => {
+export const AnalysisView = ({ meeting, onProceed, onGenerateRoadmap, roadmapLoading, onSendToApprovals, sendingToApprovals }) => {
   const actions = meeting.actions || [];
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -96,7 +96,13 @@ export const AnalysisView = ({ meeting, onProceed, onGenerateRoadmap, roadmapLoa
       </Card>
 
       {/* Project roadmap */}
-      <RoadmapSection roadmap={meeting.roadmap} onGenerate={onGenerateRoadmap} loading={roadmapLoading} />
+      <RoadmapSection
+        roadmap={meeting.roadmap}
+        onGenerate={onGenerateRoadmap}
+        loading={roadmapLoading}
+        onSendToApprovals={onSendToApprovals}
+        sendingToApprovals={sendingToApprovals}
+      />
 
       <div className="flex justify-end">
         <Button size="lg" onClick={onProceed} disabled={!actions.length} data-testid="proceed-to-approval-button">

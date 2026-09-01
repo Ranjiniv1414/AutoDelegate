@@ -313,6 +313,77 @@ class TestRoadmap:
         assert r.json().get("roadmap"), "roadmap not persisted"
 
 
+# ---- Roadmap -> Actions (new) ----
+class TestRoadmapToActions:
+    def test_requires_roadmap_400(self, session, meeting_id):
+        # meeting_id fixture has no roadmap generated on it
+        r = session.post(f"{API}/roadmap-to-actions",
+                         json={"meeting_id": meeting_id, "speaker_map": {}})
+        assert r.status_code == 400, r.text
+
+    def test_missing_meeting_404(self, session):
+        r = session.post(f"{API}/roadmap-to-actions",
+                         json={"meeting_id": "bogus-id", "speaker_map": {}})
+        assert r.status_code == 404
+
+    def test_push_roadmap_dedupes(self, session, project_meeting_id):
+        # project_meeting_id fixture (used by TestRoadmap) has an analyzed + roadmapped meeting
+        # Ensure it was roadmapped (TestRoadmap.test_analyze_then_roadmap runs first via fixture chain).
+        # Force ensure roadmap exists:
+        gr = session.post(f"{API}/generate-roadmap",
+                          json={"meeting_id": project_meeting_id, "speaker_map": {}}, timeout=180)
+        assert gr.status_code == 200, gr.text
+        rm = gr.json().get("roadmap")
+        assert rm and rm.get("phases"), "Precondition: roadmap must exist"
+        total_tasks = sum(len(p.get("tasks", [])) for p in rm["phases"])
+        assert total_tasks >= 1
+
+        # First push
+        r = session.post(f"{API}/roadmap-to-actions",
+                         json={"meeting_id": project_meeting_id, "speaker_map": {}})
+        assert r.status_code == 200, r.text
+        d = r.json()
+        added1 = d.get("roadmap_actions_added")
+        assert isinstance(added1, int) and added1 >= 1, f"expected >=1 added, got {added1}"
+        actions1 = d.get("actions", [])
+        roadmap_actions = [a for a in actions1 if a.get("source") == "roadmap"]
+        assert len(roadmap_actions) >= 1
+        # every roadmap action has valid action_type + tool + pending status
+        for a in roadmap_actions:
+            assert a["status"] == "pending"
+            assert a["action_type"] in ("jira", "gmail", "calendar", "slack", "none")
+            assert a["tool"] in ("Jira", "Gmail", "Google Calendar", "Slack", "None")
+            assert a.get("task"), "task must be non-empty"
+
+        # Second push -> no dupes
+        r2 = session.post(f"{API}/roadmap-to-actions",
+                          json={"meeting_id": project_meeting_id, "speaker_map": {}})
+        assert r2.status_code == 200, r2.text
+        d2 = r2.json()
+        assert d2.get("roadmap_actions_added") == 0, f"dedup broken: {d2.get('roadmap_actions_added')}"
+        # length unchanged
+        assert len(d2.get("actions", [])) == len(actions1)
+
+
+# ---- Pure unit tests for infer_action_type ----
+class TestInferActionType:
+    def test_infer(self):
+        import importlib, sys
+        sys.path.insert(0, "/app/backend")
+        server = importlib.import_module("server")
+        infer = server.infer_action_type
+        assert infer("Schedule a review meeting", []) == "calendar"
+        assert infer("Kickoff call with the team", []) == "calendar"
+        assert infer("Send document to finance", []) == "gmail"
+        assert infer("Draft an email to the client", []) == "gmail"
+        assert infer("Post an update to the team channel", []) == "slack"
+        assert infer("Notify the team about release", []) == "slack"
+        assert infer("Implement user auth API", []) == "jira"
+        # tool-name hinted
+        assert infer("Set up repo", [{"name": "Google Calendar"}]) == "calendar"
+        assert infer("Set up repo", [{"name": "Slack"}]) == "slack"
+
+
 class TestSlackRoutingAndHistoryExtra:
     def test_edit_action_slack_type(self, session, meeting_id, analyzed):
         aid = analyzed["actions"][0]["id"]

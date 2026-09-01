@@ -1,21 +1,164 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Route, Wrench, ExternalLink, Flag, AlertTriangle, Layers, User, CalendarClock, Loader2, Sparkles,
+  Download, Printer, Send, GanttChartSquare, ListTree,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-const ToolChip = ({ tool }) => {
-  const inner = (
-    <>
-      <Wrench className="h-3 w-3" />
-      {tool.name}
-      {tool.url && <ExternalLink className="h-3 w-3 opacity-60" />}
-    </>
+/* ---------------- helpers ---------------- */
+const parseSpan = (timeline, idx) => {
+  const s = (timeline || "").toLowerCase();
+  const nums = (s.match(/\d+/g) || []).map(Number);
+  let start, end;
+  if (s.includes("day") && nums.length) {
+    start = Math.max(1, Math.ceil(nums[0] / 7));
+    end = Math.max(start, Math.ceil(nums[nums.length - 1] / 7));
+  } else if (nums.length) {
+    start = nums[0];
+    end = nums[nums.length - 1];
+  }
+  if (!start) { start = idx + 1; end = idx + 1; }
+  if (end < start) end = start;
+  return { start, end };
+};
+
+const toMarkdown = (r) => {
+  let md = `# ${r.project_name}\n\n${r.objective || ""}\n\n`;
+  if (r.recommended_stack?.length) {
+    md += `## Recommended Stack\n`;
+    r.recommended_stack.forEach((t) => {
+      md += `- **${t.name}** (${t.category || ""}) — ${t.why || ""}${t.url ? ` <${t.url}>` : ""}\n`;
+    });
+    md += `\n`;
+  }
+  r.phases?.forEach((p, i) => {
+    md += `## P${i + 1}. ${p.name} — ${p.timeline || ""}\n`;
+    if (p.goal) md += `${p.goal}\n\n`;
+    p.tasks?.forEach((t) => {
+      md += `- [ ] ${t.task}${t.owner ? ` — @${t.owner}` : ""}${t.deadline ? ` (due ${t.deadline})` : ""}\n`;
+      if (t.recommended_tools?.length) {
+        md += `  - Tools: ${t.recommended_tools.map((x) => (x.url ? `[${x.name}](${x.url})` : x.name)).join(", ")}\n`;
+      }
+    });
+    if (p.milestone) md += `\n> 🏁 Milestone: ${p.milestone}\n`;
+    md += `\n`;
+  });
+  if (r.risks?.length) {
+    md += `## Risks & Blockers\n`;
+    r.risks.forEach((x) => (md += `- ${x}\n`));
+  }
+  return md;
+};
+
+const downloadMarkdown = (r) => {
+  const blob = new Blob([toMarkdown(r)], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${(r.project_name || "roadmap").replace(/\s+/g, "_")}.md`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
+const exportPDF = (r) => {
+  const esc = (s) => String(s || "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const phases = (r.phases || []).map((p, i) => `
+    <div class="phase">
+      <h2><span class="pill">P${i + 1}</span> ${esc(p.name)} <span class="tl">${esc(p.timeline)}</span></h2>
+      <p class="goal">${esc(p.goal)}</p>
+      <ul>${(p.tasks || []).map((t) => `<li><b>${esc(t.task)}</b> ${t.owner ? `— ${esc(t.owner)}` : ""} ${t.deadline ? `<i>(due ${esc(t.deadline)})</i>` : ""}${t.recommended_tools?.length ? `<div class="tools">Tools: ${t.recommended_tools.map((x) => esc(x.name)).join(", ")}</div>` : ""}</li>`).join("")}</ul>
+      ${p.milestone ? `<div class="ms">🏁 Milestone: ${esc(p.milestone)}</div>` : ""}
+    </div>`).join("");
+  const stack = (r.recommended_stack || []).map((t) => `<li><b>${esc(t.name)}</b> — ${esc(t.category)}: ${esc(t.why)}</li>`).join("");
+  const risks = (r.risks || []).map((x) => `<li>${esc(x)}</li>`).join("");
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(r.project_name)} — Roadmap</title>
+    <style>
+      body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#111;max-width:820px;margin:32px auto;padding:0 24px;line-height:1.5}
+      h1{font-size:26px;margin:0 0 4px} .obj{color:#555;margin:0 0 20px}
+      h2{font-size:17px;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
+      .pill{background:#4f46e5;color:#fff;border-radius:6px;padding:1px 7px;font-size:12px}
+      .tl{margin-left:auto;font-size:12px;color:#4f46e5;font-weight:600}
+      .goal{color:#555;margin:0 0 8px;font-size:14px}
+      ul{margin:0 0 8px;padding-left:20px} li{margin:3px 0;font-size:14px}
+      .tools{font-size:12px;color:#4f46e5} .ms{color:#059669;font-weight:600;font-size:13px;margin-top:6px}
+      .phase{border-left:3px solid #e5e7eb;padding-left:14px;margin-bottom:6px}
+      h3{font-size:15px;margin:22px 0 6px;border-top:1px solid #eee;padding-top:14px}
+      .brand{font-size:12px;color:#888;margin-top:28px;border-top:1px solid #eee;padding-top:10px}
+    </style></head><body>
+    <h1>${esc(r.project_name)}</h1><p class="obj">${esc(r.objective)}</p>
+    ${stack ? `<h3>Recommended Stack</h3><ul>${stack}</ul>` : ""}
+    <h3>Roadmap</h3>${phases}
+    ${risks ? `<h3>Risks &amp; Blockers</h3><ul>${risks}</ul>` : ""}
+    <div class="brand">Generated by AutoDelegate — Turn meeting decisions into actions.</div>
+    <script>window.onload=()=>{setTimeout(()=>window.print(),300)}</script>
+    </body></html>`;
+  const w = window.open("", "_blank");
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+  } else {
+    toast.error("Popup blocked — allow popups to export PDF, or use the .md export.");
+  }
+};
+
+/* ---------------- Gantt ---------------- */
+const GanttView = ({ phases }) => {
+  const spans = phases.map((p, i) => ({ ...parseSpan(p.timeline, i), name: p.name, timeline: p.timeline }));
+  const maxWeek = Math.max(1, ...spans.map((s) => s.end));
+  const cols = Array.from({ length: maxWeek }, (_, i) => i + 1);
+  return (
+    <Card className="p-5 overflow-x-auto" data-testid="gantt-view">
+      <div className="min-w-[560px]">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-40 shrink-0" />
+          <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${maxWeek}, minmax(0,1fr))` }}>
+            {cols.map((w) => (
+              <div key={w} className="text-[10px] font-mono text-muted-foreground text-center border-l border-border/60 py-1">
+                W{w}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2.5">
+          {spans.map((s, i) => {
+            const left = ((s.start - 1) / maxWeek) * 100;
+            const width = ((s.end - s.start + 1) / maxWeek) * 100;
+            return (
+              <div key={i} className="flex items-center gap-3" data-testid={`gantt-row-${i}`}>
+                <div className="w-40 shrink-0 text-xs font-medium truncate" title={s.name}>
+                  <span className="text-primary font-mono mr-1">P{i + 1}</span>{s.name}
+                </div>
+                <div className="relative flex-1 h-8 rounded-md bg-muted/30 border border-border/50">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${width}%` }}
+                    transition={{ delay: i * 0.08, duration: 0.5 }}
+                    className="absolute top-1 bottom-1 rounded-md bg-primary/80 border border-primary flex items-center px-2"
+                    style={{ left: `${left}%` }}
+                  >
+                    <span className="text-[10px] font-mono text-primary-foreground truncate">{s.timeline}</span>
+                  </motion.div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Card>
   );
+};
+
+/* ---------------- Tool chip ---------------- */
+const ToolChip = ({ tool }) => {
   const cls =
     "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border border-primary/25 bg-primary/10 text-primary hover:bg-primary/20 transition-colors";
+  const inner = (<><Wrench className="h-3 w-3" />{tool.name}{tool.url && <ExternalLink className="h-3 w-3 opacity-60" />}</>);
   return tool.url ? (
     <a href={tool.url} target="_blank" rel="noreferrer" className={cls} title={tool.why}>{inner}</a>
   ) : (
@@ -23,7 +166,10 @@ const ToolChip = ({ tool }) => {
   );
 };
 
-export const RoadmapSection = ({ roadmap, onGenerate, loading }) => {
+/* ---------------- Main ---------------- */
+export const RoadmapSection = ({ roadmap, onGenerate, loading, onSendToApprovals, sendingToApprovals }) => {
+  const [view, setView] = useState("timeline");
+
   if (!roadmap) {
     return (
       <Card className="p-6 glass border-dashed" data-testid="roadmap-cta-card">
@@ -40,11 +186,7 @@ export const RoadmapSection = ({ roadmap, onGenerate, loading }) => {
             </div>
           </div>
           <Button size="lg" onClick={onGenerate} disabled={loading} data-testid="generate-roadmap-button">
-            {loading ? (
-              <><Loader2 className="h-5 w-5 animate-spin" /> Planning…</>
-            ) : (
-              <><Sparkles className="h-5 w-5" /> Generate Roadmap</>
-            )}
+            {loading ? (<><Loader2 className="h-5 w-5 animate-spin" /> Planning…</>) : (<><Sparkles className="h-5 w-5" /> Generate Roadmap</>)}
           </Button>
         </div>
       </Card>
@@ -53,13 +195,46 @@ export const RoadmapSection = ({ roadmap, onGenerate, loading }) => {
 
   return (
     <div className="space-y-5" data-testid="roadmap-section">
-      {/* Header */}
+      {/* Header + toolbar */}
       <Card className="p-6 glass">
-        <div className="flex items-center gap-2 text-primary font-semibold mb-1">
-          <Route className="h-4 w-4" /> Project Roadmap
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-semibold mb-1">
+              <Route className="h-4 w-4" /> Project Roadmap
+            </div>
+            <h3 className="font-display text-2xl font-bold">{roadmap.project_name}</h3>
+            <p className="text-muted-foreground mt-1 max-w-2xl">{roadmap.objective}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={onSendToApprovals} disabled={sendingToApprovals} data-testid="roadmap-to-approvals-button">
+              {sendingToApprovals ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send to Approvals
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => downloadMarkdown(roadmap)} data-testid="export-md-button">
+              <Download className="h-4 w-4" /> .md
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => exportPDF(roadmap)} data-testid="export-pdf-button">
+              <Printer className="h-4 w-4" /> PDF
+            </Button>
+          </div>
         </div>
-        <h3 className="font-display text-2xl font-bold">{roadmap.project_name}</h3>
-        <p className="text-muted-foreground mt-1">{roadmap.objective}</p>
+
+        {/* view toggle */}
+        <div className="flex items-center gap-1 mt-4 p-1 rounded-lg bg-muted/40 border border-border w-fit">
+          <button
+            onClick={() => setView("timeline")}
+            className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors", view === "timeline" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+            data-testid="view-timeline-button"
+          >
+            <ListTree className="h-3.5 w-3.5" /> Timeline
+          </button>
+          <button
+            onClick={() => setView("gantt")}
+            className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors", view === "gantt" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+            data-testid="view-gantt-button"
+          >
+            <GanttChartSquare className="h-3.5 w-3.5" /> Gantt
+          </button>
+        </div>
       </Card>
 
       {/* Recommended stack */}
@@ -70,14 +245,9 @@ export const RoadmapSection = ({ roadmap, onGenerate, loading }) => {
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {roadmap.recommended_stack.map((t, i) => (
-              <a
-                key={i}
-                href={t.url || undefined}
-                target="_blank"
-                rel="noreferrer"
+              <a key={i} href={t.url || undefined} target="_blank" rel="noreferrer"
                 className="p-3 rounded-lg border border-border bg-muted/20 hover:border-primary/40 transition-colors block"
-                data-testid={`stack-item-${i}`}
-              >
+                data-testid={`stack-item-${i}`}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm">{t.name}</span>
                   {t.url && <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -90,58 +260,52 @@ export const RoadmapSection = ({ roadmap, onGenerate, loading }) => {
         </Card>
       )}
 
-      {/* Phases timeline */}
-      <div className="relative pl-6 sm:pl-8">
-        <div className="absolute left-[9px] sm:left-[13px] top-2 bottom-2 w-[2px] bg-border" />
-        <div className="space-y-4">
-          {roadmap.phases?.map((p, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              className="relative"
-              data-testid={`roadmap-phase-${i}`}
-            >
-              <div className="absolute -left-[22px] sm:-left-[30px] top-4 h-5 w-5 rounded-full bg-primary border-4 border-background" />
-              <Card className="p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                  <h4 className="font-display font-bold text-lg">
-                    <span className="text-primary mr-2 font-mono text-sm">P{i + 1}</span>{p.name}
-                  </h4>
-                  <span className="text-xs font-mono px-2 py-1 rounded-full bg-accent text-accent-foreground border border-primary/20">
-                    {p.timeline}
-                  </span>
-                </div>
-                {p.goal && <p className="text-sm text-muted-foreground mb-3">{p.goal}</p>}
-
-                <div className="space-y-3">
-                  {p.tasks?.map((t, j) => (
-                    <div key={j} className="p-3 rounded-lg border border-border bg-muted/20" data-testid={`roadmap-task-${i}-${j}`}>
-                      <p className="text-sm font-medium">{t.task}</p>
-                      <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-muted-foreground font-mono">
-                        {t.owner && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {t.owner}</span>}
-                        {t.deadline && <span className="inline-flex items-center gap-1"><CalendarClock className="h-3 w-3" /> {t.deadline}</span>}
-                      </div>
-                      {t.recommended_tools?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2.5">
-                          {t.recommended_tools.map((tool, k) => <ToolChip key={k} tool={tool} />)}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {p.milestone && (
-                  <div className="flex items-center gap-2 mt-3 text-sm text-emerald-400">
-                    <Flag className="h-4 w-4" /> <span className="font-medium">Milestone:</span> {p.milestone}
+      {/* Gantt or Timeline */}
+      {view === "gantt" ? (
+        <GanttView phases={roadmap.phases || []} />
+      ) : (
+        <div className="relative pl-6 sm:pl-8">
+          <div className="absolute left-[9px] sm:left-[13px] top-2 bottom-2 w-[2px] bg-border" />
+          <div className="space-y-4">
+            {roadmap.phases?.map((p, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                className="relative" data-testid={`roadmap-phase-${i}`}>
+                <div className="absolute -left-[22px] sm:-left-[30px] top-4 h-5 w-5 rounded-full bg-primary border-4 border-background" />
+                <Card className="p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <h4 className="font-display font-bold text-lg">
+                      <span className="text-primary mr-2 font-mono text-sm">P{i + 1}</span>{p.name}
+                    </h4>
+                    <span className="text-xs font-mono px-2 py-1 rounded-full bg-accent text-accent-foreground border border-primary/20">{p.timeline}</span>
                   </div>
-                )}
-              </Card>
-            </motion.div>
-          ))}
+                  {p.goal && <p className="text-sm text-muted-foreground mb-3">{p.goal}</p>}
+                  <div className="space-y-3">
+                    {p.tasks?.map((t, j) => (
+                      <div key={j} className="p-3 rounded-lg border border-border bg-muted/20" data-testid={`roadmap-task-${i}-${j}`}>
+                        <p className="text-sm font-medium">{t.task}</p>
+                        <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-muted-foreground font-mono">
+                          {t.owner && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> {t.owner}</span>}
+                          {t.deadline && <span className="inline-flex items-center gap-1"><CalendarClock className="h-3 w-3" /> {t.deadline}</span>}
+                        </div>
+                        {t.recommended_tools?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2.5">
+                            {t.recommended_tools.map((tool, k) => <ToolChip key={k} tool={tool} />)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {p.milestone && (
+                    <div className="flex items-center gap-2 mt-3 text-sm text-emerald-400">
+                      <Flag className="h-4 w-4" /> <span className="font-medium">Milestone:</span> {p.milestone}
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Risks */}
       {roadmap.risks?.length > 0 && (

@@ -11,7 +11,7 @@ import { ApprovalView } from "@/views/ApprovalView";
 import { ExecutionView } from "@/views/ExecutionView";
 import { MeetingHistory } from "@/components/MeetingHistory";
 import {
-  uploadAudio, createMeeting, analyzeMeeting, editAction, executeAction, generateRoadmap,
+  uploadAudio, createMeeting, analyzeMeeting, editAction, executeAction, generateRoadmap, roadmapToActions,
 } from "@/lib/api";
 
 const STEP_STAGE = { home: 0, mapping: 1, analysis: 3, approval: 4, execution: 5 };
@@ -26,6 +26,7 @@ function App() {
   const [busyIds, setBusyIds] = useState([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [roadmapLoading, setRoadmapLoading] = useState(false);
+  const [sendingToApprovals, setSendingToApprovals] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -146,6 +147,20 @@ function App() {
     }
   };
 
+  const handleSendRoadmapToApprovals = async () => {
+    setSendingToApprovals(true);
+    try {
+      const m = await roadmapToActions(meeting.id);
+      setMeeting(m);
+      toast.success(`Added ${m.roadmap_actions_added || 0} roadmap task(s) to approvals.`);
+      setStep("approval");
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Could not push roadmap tasks.");
+    } finally {
+      setSendingToApprovals(false);
+    }
+  };
+
   const stage = STEP_STAGE[step] ?? 0;
 
   return (
@@ -190,6 +205,8 @@ function App() {
             onProceed={() => setStep("approval")}
             onGenerateRoadmap={handleGenerateRoadmap}
             roadmapLoading={roadmapLoading}
+            onSendToApprovals={handleSendRoadmapToApprovals}
+            sendingToApprovals={sendingToApprovals}
           />
         )}
         {step === "approval" && meeting && (

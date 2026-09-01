@@ -411,6 +411,55 @@ async def generate_roadmap_endpoint(payload: AnalyzeIn):
     return await get_meeting_or_404(payload.meeting_id)
 
 
+def infer_action_type(task_text: str, tools: list) -> str:
+    t = (task_text or "").lower()
+    names = " ".join([str(x.get("name", "")).lower() for x in (tools or [])])
+    if any(k in t for k in ["meet", "review", "schedule", "call", "sync", "standup", "kickoff", "demo"]) or "calendar" in names or "meet" in names:
+        return "calendar"
+    if any(k in t for k in ["email", "send ", "draft", "mail", "document to"]) or "gmail" in names:
+        return "gmail"
+    if any(k in t for k in ["notify", "announce", "update the team", "post an update", "broadcast", "let the team"]) or "slack" in names:
+        return "slack"
+    return "jira"
+
+
+@api_router.post("/roadmap-to-actions")
+async def roadmap_to_actions(payload: AnalyzeIn):
+    meeting = await get_meeting_or_404(payload.meeting_id)
+    roadmap = meeting.get("roadmap")
+    if not roadmap:
+        raise HTTPException(status_code=400, detail="Generate a roadmap before pushing tasks to approvals")
+    actions = meeting.get("actions", [])
+    existing = {(a.get("task", "") or "").strip().lower() for a in actions}
+    added = 0
+    for phase in roadmap.get("phases", []):
+        for t in phase.get("tasks", []):
+            task = (t.get("task") or "").strip()
+            if not task or task.lower() in existing:
+                continue
+            at = infer_action_type(task, t.get("recommended_tools"))
+            actions.append({
+                "id": str(uuid.uuid4()),
+                "person": t.get("owner", ""),
+                "speaker": "",
+                "statement": f"[Roadmap · {phase.get('name', '')}] {task}",
+                "task": task,
+                "deadline": t.get("deadline", ""),
+                "action_type": at,
+                "tool": TOOL_LABELS[at],
+                "confidence": 1.0,
+                "status": "pending",
+                "execution_result": None,
+                "source": "roadmap",
+            })
+            existing.add(task.lower())
+            added += 1
+    await db.meetings.update_one({"id": payload.meeting_id}, {"$set": {"actions": actions}})
+    result = await get_meeting_or_404(payload.meeting_id)
+    result["roadmap_actions_added"] = added
+    return result
+
+
 @api_router.post("/extract-actions")
 async def extract_actions(payload: AnalyzeIn):
     """Return only the extracted action items for a meeting (re-runs analysis if needed)."""

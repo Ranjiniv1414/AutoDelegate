@@ -45,6 +45,13 @@ clearly-labelled Demo Mode fallback.
 - **Project Roadmap**: POST /api/generate-roadmap turns a project discussion into a phased plan (phases, milestones, tasks w/ owners+deadlines) and recommends REAL existing tools with official URLs. Rendered as a timeline in the Analysis view (RoadmapSection). Re-analyzing clears the stale roadmap.
 - Tested: 23/23 backend, 100% frontend.
 
+### Iteration 4 (2026-09-01)
+- **Roadmap Export**: download roadmap as Markdown (.md) or print/save as PDF (clean HTML print window).
+- **Gantt View**: toggle the roadmap between Timeline and a week-based Gantt bar chart (parses "Week 1"/"Weeks 2-3"/"Days 1-3").
+- **Roadmap → Approvals**: POST /api/roadmap-to-actions pushes every roadmap task into the approval queue (source=roadmap, tool inferred), deduped by task; then executable in Demo Mode.
+- **Real diarization (BYOK)**: still pending — user has not provided a fal.ai/ElevenLabs key.
+- Tested: 27/27 backend, 100% frontend.
+
 ## Backlog (P1/P2)
 - P1: Persist + list past meetings in a sidebar (endpoint exists).
 - P1: Real speaker diarization via a diarization model (currently LLM-approximate).
