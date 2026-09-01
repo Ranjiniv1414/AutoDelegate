@@ -9,6 +9,7 @@ import { SpeakerMappingView } from "@/views/SpeakerMappingView";
 import { AnalysisView } from "@/views/AnalysisView";
 import { ApprovalView } from "@/views/ApprovalView";
 import { ExecutionView } from "@/views/ExecutionView";
+import { MeetingHistory } from "@/components/MeetingHistory";
 import {
   uploadAudio, createMeeting, analyzeMeeting, editAction, executeAction,
 } from "@/lib/api";
@@ -23,6 +24,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const [busyIds, setBusyIds] = useState([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -117,6 +119,19 @@ function App() {
     }
   };
 
+  const handleSelectHistory = (m) => {
+    setMeeting(m);
+    setBusyIds([]);
+    if (m.actions && m.actions.length) {
+      const anyExecuted = m.actions.some((a) => a.execution_result);
+      setStep(anyExecuted ? "execution" : "analysis");
+    } else {
+      setStep("mapping");
+    }
+    setHistoryOpen(false);
+    toast.success(`Loaded "${m.title || "meeting"}"`);
+  };
+
   const stage = STEP_STAGE[step] ?? 0;
 
   return (
@@ -128,11 +143,19 @@ function App() {
         theme={theme}
         toggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
         onReset={reset}
+        onOpenHistory={() => setHistoryOpen(true)}
+      />
+
+      <MeetingHistory
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        onSelect={handleSelectHistory}
+        activeId={meeting?.id}
       />
 
       {demoMode && (
         <div className="bg-amber-500/15 border-b border-amber-500/25 text-amber-300 text-xs sm:text-sm text-center py-2 px-4 font-mono amber-pulse" data-testid="demo-mode-banner">
-          DEMO MODE — external actions (Jira / Gmail / Calendar) are SIMULATED, not executed for real.
+          DEMO MODE — external actions (Jira / Gmail / Calendar / Slack) are SIMULATED, not executed for real.
         </div>
       )}
 

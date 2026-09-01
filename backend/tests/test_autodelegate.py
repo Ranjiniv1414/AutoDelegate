@@ -23,6 +23,12 @@ Priya: I feel we could switch auth libraries eventually, but that's a bigger dis
 Ravi: Let's schedule a review meeting Monday 10 AM to sign off on the release.
 """
 
+SLACK_TRANSCRIPT = """Ravi: Quick sync. Priya, please fix the bug-fix for the payment webhook crashing on retries by Thursday.
+Priya: Got it, I'll push the fix by Thursday.
+Arun: I will post a project update to the team channel later today so everyone is in the loop.
+Ravi: Great. Let's also meet Friday at 3 PM to review release readiness.
+"""
+
 
 @pytest.fixture(scope="module")
 def session():
@@ -154,3 +160,84 @@ class TestUploadAudio:
         files = {"file": ("bad.txt", io.BytesIO(b"not audio"), "text/plain")}
         r = requests.post(f"{API}/upload-audio", files=files)
         assert r.status_code == 400
+
+
+# ---- Slack routing + GET /api/meetings (new features) ----
+@pytest.fixture(scope="module")
+def slack_meeting(session):
+    r = session.post(f"{API}/meetings", json={"transcript": SLACK_TRANSCRIPT, "title": "TEST_slack_routing"})
+    assert r.status_code == 200, r.text
+    return r.json()["id"]
+
+
+@pytest.fixture(scope="module")
+def slack_analyzed(session, slack_meeting):
+    r = session.post(f"{API}/analyze-meeting", json={"meeting_id": slack_meeting, "speaker_map": {}}, timeout=120)
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+class TestSlackRoutingAndHistory:
+    def test_slack_action_present(self, slack_analyzed):
+        actions = slack_analyzed.get("actions", [])
+        slack_actions = [a for a in actions if a.get("action_type") == "slack"]
+        assert slack_actions, f"No slack action produced. actions={actions}"
+        s = slack_actions[0]
+        assert s["tool"] == "Slack"
+
+    def test_jira_and_calendar_still_route(self, slack_analyzed):
+        actions = slack_analyzed.get("actions", [])
+        assert any(a.get("action_type") == "jira" for a in actions), f"Missing jira action: {actions}"
+        assert any(a.get("action_type") == "calendar" for a in actions), f"Missing calendar action: {actions}"
+
+    def test_execute_slack_demo(self, session, slack_meeting, slack_analyzed):
+        slack_action = next(a for a in slack_analyzed["actions"] if a["action_type"] == "slack")
+        aid = slack_action["id"]
+        # approve
+        r = session.post(f"{API}/edit-action", json={"meeting_id": slack_meeting, "action_id": aid, "status": "approved"})
+        assert r.status_code == 200
+        # execute
+        r = session.post(f"{API}/execute-action", json={"meeting_id": slack_meeting, "action_id": aid, "demo_mode": True})
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d["action"]["status"] == "executed"
+        er = d["action"]["execution_result"]
+        assert er["provider"] == "slack"
+        assert er["demo"] is True
+        assert er["success"] is True
+        assert "SIMULATED" in er["message"]
+        assert er["detail"].get("message_id", "").startswith("MSG-"), f"missing MSG-xxxx: {er}"
+
+    def test_list_meetings(self, session, slack_meeting):
+        r = session.get(f"{API}/meetings")
+        assert r.status_code == 200
+        data = r.json()
+        assert isinstance(data, list) and len(data) >= 1
+        m0 = data[0]
+        # newest first ordering — our slack_meeting should be present in list
+        ids = [m["id"] for m in data]
+        assert slack_meeting in ids
+        # required fields per request
+        for key in ("id", "title", "source", "status", "created_at"):
+            assert key in m0, f"missing {key} in {m0}"
+        # raw_transcript should be stripped
+        assert "raw_transcript" not in m0
+        # actions field optional but present for analyzed meetings
+        analyzed_meeting = next(m for m in data if m["id"] == slack_meeting)
+        assert isinstance(analyzed_meeting.get("actions", []), list)
+
+    def test_meetings_newest_first(self, session):
+        r = session.get(f"{API}/meetings")
+        data = r.json()
+        if len(data) >= 2:
+            assert data[0]["created_at"] >= data[1]["created_at"]
+
+    def test_edit_action_slack_type(self, session, meeting_id, analyzed):
+        aid = analyzed["actions"][0]["id"]
+        r = session.post(f"{API}/edit-action", json={
+            "meeting_id": meeting_id, "action_id": aid, "action_type": "slack",
+        })
+        assert r.status_code == 200
+        act = next(a for a in r.json()["actions"] if a["id"] == aid)
+        assert act["action_type"] == "slack"
+        assert act["tool"] == "Slack"

@@ -1,9 +1,9 @@
 import React from "react";
-import { Zap, Moon, Sun } from "lucide-react";
+import { Zap, Moon, Sun, History } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-export const Header = ({ demoMode, setDemoMode, theme, toggleTheme, onReset }) => {
+export const Header = ({ demoMode, setDemoMode, theme, toggleTheme, onReset, onOpenHistory }) => {
   return (
     <header className="sticky top-0 z-40 glass border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
@@ -22,6 +22,14 @@ export const Header = ({ demoMode, setDemoMode, theme, toggleTheme, onReset }) =
         </button>
 
         <div className="flex items-center gap-3 sm:gap-5">
+          <button
+            onClick={onOpenHistory}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-accent transition-colors"
+            data-testid="open-history-button"
+          >
+            <History className="h-4 w-4" /> <span className="hidden sm:inline">History</span>
+          </button>
+
           <div
             className={cn(
               "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono",

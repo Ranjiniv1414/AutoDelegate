@@ -35,6 +35,12 @@ clearly-labelled Demo Mode fallback.
 - README with install/run/config/demo instructions; sample meeting included.
 - Tested: 13/13 backend, full frontend E2E — all passing.
 
+### Iteration 2 (2026-09-01)
+- **Meeting History**: left sidebar (Sheet) listing past meetings via GET /api/meetings; click to reload analysis/execution. Header History button (mobile-visible).
+- **Slack tool**: added as a 4th action tool (create_slack_message) with Demo Mode simulation + real Incoming Webhook support (SLACK_WEBHOOK_URL). LLM routes team updates/announcements → slack.
+- Tested: 19/19 backend, 100% frontend (incl. regression).
+- **Real diarization — NOT delivered**: the Emergent Universal Key fal proxy only exposes `fal-ai/wizper`, which has NO speaker diarization (no `diarize` input, output chunks are timestamp+text only). `fal-ai/whisper` and ElevenLabs Scribe are blocked by the proxy policy (422). True voice diarization requires either a BYOK fal key (fal-ai/whisper with diarize) or a dedicated diarization provider. Current audio path = Whisper STT + LLM approximate segmentation (clearly labelled).
+
 ## Backlog (P1/P2)
 - P1: Persist + list past meetings in a sidebar (endpoint exists).
 - P1: Real speaker diarization via a diarization model (currently LLM-approximate).

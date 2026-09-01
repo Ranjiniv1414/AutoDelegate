@@ -41,7 +41,7 @@ logger = logging.getLogger("autodelegate")
 # --------------------------------------------------------------------------- #
 # Models
 # --------------------------------------------------------------------------- #
-TOOL_LABELS = {"jira": "Jira", "gmail": "Gmail", "calendar": "Google Calendar", "none": "None"}
+TOOL_LABELS = {"jira": "Jira", "gmail": "Gmail", "calendar": "Google Calendar", "slack": "Slack", "none": "None"}
 
 
 class TranscriptIn(BaseModel):
@@ -146,7 +146,9 @@ ANALYSIS_SYSTEM = (
     "Do NOT turn every sentence into a task — only real commitments become actions. "
     "For each ACTION, choose the best tool: 'jira' for engineering/dev/testing/bug tasks, "
     "'gmail' for sending an email/document/message to a person, 'calendar' for scheduling a "
-    "meeting/review/event with a date & time. Use 'none' if unclear.\n"
+    "meeting/review/event with a date & time, 'slack' for posting a status update / announcement / "
+    "reminder to the team channel (e.g. 'post an update to the team', 'let the team know'). "
+    "Use 'none' if unclear.\n"
     "Return ONLY valid JSON with this exact shape:\n"
     "{\n"
     '  "summary": "2-3 sentence executive summary",\n'

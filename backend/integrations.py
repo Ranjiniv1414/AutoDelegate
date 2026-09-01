@@ -176,8 +176,41 @@ def create_calendar_event(task: str, person: str, deadline: str = "", demo_mode:
                 "message": f"Calendar API error: {e}", "detail": {}}
 
 
+# --------------------------------------------------------------------------- #
+# SLACK
+# --------------------------------------------------------------------------- #
+def create_slack_message(task: str, person: str, deadline: str = "", demo_mode: bool = True) -> dict:
+    webhook = os.environ.get("SLACK_WEBHOOK_URL")
+
+    text = f":memo: *{task}*\nOwner: {person or 'team'}" + (f" · Due: {deadline}" if deadline else "")
+
+    if demo_mode or not webhook:
+        msg_id = _sim_id("MSG")
+        return {
+            "success": True,
+            "demo": True,
+            "provider": "slack",
+            "message": f"SIMULATED: Slack update {msg_id} would be posted to your team channel.",
+            "detail": {"message_id": msg_id, "channel": "#team-updates", "text": text,
+                       "owner": person, "due": deadline},
+        }
+
+    try:
+        resp = requests.post(webhook, json={"text": text}, timeout=20)
+        resp.raise_for_status()
+        return {
+            "success": True, "demo": False, "provider": "slack",
+            "message": "Slack message posted to channel.",
+            "detail": {"channel": "webhook", "text": text, "owner": person, "due": deadline},
+        }
+    except Exception as e:
+        return {"success": False, "demo": False, "provider": "slack",
+                "message": f"Slack API error: {e}", "detail": {}}
+
+
 TOOL_DISPATCH = {
     "jira": create_jira_task,
     "gmail": create_gmail_draft,
     "calendar": create_calendar_event,
+    "slack": create_slack_message,
 }

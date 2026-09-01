@@ -38,3 +38,8 @@ export const getMeeting = async (meeting_id) => {
   const { data } = await http.get(`/meeting/${meeting_id}`);
   return data;
 };
+
+export const listMeetings = async () => {
+  const { data } = await http.get("/meetings");
+  return data;
+};
