@@ -59,9 +59,8 @@ export const ExecutionView = ({ meeting, onExecute, onRetry, onRestart, busyIds 
                       <span className="font-semibold">{a.person || "Unassigned"}</span>
                       <span className="text-muted-foreground">·</span>
                       <span className={cn("text-xs font-mono", tm.color)}>{tm.label}</span>
-                      
-                    </div>
-                    <p className="text-sm text-foreground/90 mt-1">{a.task}</p>
+              </div>                  
+  <p className="text-sm text-foreground/90 mt-1">{a.task}</p>
 
                     {busy && (
                       <div className="flex items-center gap-2 text-sm text-primary mt-3" data-testid={`executing-${i}`}>
