@@ -181,11 +181,7 @@ function App() {
         onSelect={handleSelectHistory}
         activeId={meeting?.id}
       />
-
-      {demoMode && (
-        <div className="bg-amber-500/15 border-b border-amber-500/25 text-amber-300 text-xs sm:text-sm text-center py-2 px-4 font-mono amber-pulse" data-testid="demo-mode-banner">
-          
-
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <PipelineStepper active={stage} />
