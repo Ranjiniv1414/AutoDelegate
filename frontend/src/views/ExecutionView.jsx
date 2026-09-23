@@ -59,11 +59,7 @@ export const ExecutionView = ({ meeting, onExecute, onRetry, onRestart, busyIds 
                       <span className="font-semibold">{a.person || "Unassigned"}</span>
                       <span className="text-muted-foreground">·</span>
                       <span className={cn("text-xs font-mono", tm.color)}>{tm.label}</span>
-                      {r?.demo && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/25">
-                          <
-                        </span>
-                      )}
+                      
                     </div>
                     <p className="text-sm text-foreground/90 mt-1">{a.task}</p>
 
