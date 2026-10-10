@@ -164,7 +164,46 @@ function App() {
   const stage = STEP_STAGE[step] ?? 0;
 
   return (
-    <div className="App ad-backdrop min-h-screen">
+    <div className="App ad-backdrop min-h-screen">{/* Animated Background */}
+<div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+  <div className="animated-orb orb-1"></div>
+  <div className="animated-orb orb-2"></div>
+  <div className="animated-orb orb-3"></div>
+</div>
+
+<style>{`
+  .animated-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    animation: float 20s infinite ease-in-out;
+  }
+  .orb-1 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, #6366f1, transparent 70%);
+    top: -100px; left: -100px;
+    animation-delay: 0s;
+  }
+  .orb-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #8b5cf6, transparent 70%);
+    bottom: -150px; right: -150px;
+    animation-delay: -7s;
+  }
+  .orb-3 {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, #3b82f6, transparent 70%);
+    top: 50%; left: 50%;
+    animation-delay: -14s;
+  }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(50px, -50px) scale(1.1); }
+    50% { transform: translate(-30px, 30px) scale(0.95); }
+    75% { transform: translate(30px, 50px) scale(1.05); }
+  }
+`}</style>
       <Toaster position="top-right" richColors />
       <Header
         demoMode={demoMode}
