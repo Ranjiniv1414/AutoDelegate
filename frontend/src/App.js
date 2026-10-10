@@ -164,7 +164,7 @@ function App() {
   const stage = STEP_STAGE[step] ?? 0;
 
   return (
-    <div className="App ad-backdrop min-h-screen">{/* Animated Background */}
+    <div className="App min-h-screen">{/* Animated Background */}
 <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
   <div className="animated-orb orb-1"></div>
   <div className="animated-orb orb-2"></div>
