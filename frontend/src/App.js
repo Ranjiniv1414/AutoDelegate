@@ -170,13 +170,13 @@ function App() {
   <div className="animated-orb orb-2"></div>
   <div className="animated-orb orb-3"></div>
 </div>
-
 <style>{`
+  /* ============ FLOATING ORBS ============ */
   .animated-orb {
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    opacity: 0.35;
+    opacity: 0.4;
     animation: float 20s infinite ease-in-out;
   }
   .orb-1 {
@@ -202,6 +202,41 @@ function App() {
     25% { transform: translate(50px, -50px) scale(1.1); }
     50% { transform: translate(-30px, 30px) scale(0.95); }
     75% { transform: translate(30px, 50px) scale(1.05); }
+  }
+
+  /* ============ MOVING BACKGROUND GRID ============ */
+  .ad-backdrop {
+    background-size: 40px 40px, 40px 40px;
+    animation: gridFlow 25s linear infinite;
+  }
+  @keyframes gridFlow {
+    0%   { background-position: 0 0, 0 0; }
+    100% { background-position: 40px 40px, 40px 40px; }
+  }
+
+  /* ============ CINEMATIC ENTRANCE REVEAL ============ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+    filter: blur(8px);
+    animation: revealIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .reveal-1 { animation-delay: 0.10s; }
+  .reveal-2 { animation-delay: 0.25s; }
+  .reveal-3 { animation-delay: 0.40s; }
+  .reveal-4 { animation-delay: 0.55s; }
+  .reveal-5 { animation-delay: 0.70s; }
+  @keyframes revealIn {
+    0% {
+      opacity: 0;
+      transform: translateY(30px) scale(0.97);
+      filter: blur(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
   }
 `}</style>
       <Toaster position="top-right" richColors />
