@@ -298,7 +298,7 @@ function App() {
         )}
       </main>
 
-      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground font-mono">
+      <footer className="reveal reveal-5 border-t border-border py-6 text-center text-xs text-muted-foreground font-mono">
         AutoDelegate · MEETING → UNDERSTAND → REASON → PLAN → APPROVE → EXECUTE
       </footer>
     </div>
