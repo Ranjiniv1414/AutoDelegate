@@ -238,6 +238,29 @@ function App() {
       filter: blur(0);
     }
   }
+/* CINEMATIC HERO */
+.hero-cinematic { min-height: 420px; animation: heroFade 1.2s ease-out; }
+@keyframes heroFade {
+  from { opacity: 0; transform: scale(1.02); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.hero-image { animation: heroZoom 20s ease-in-out infinite alternate; }
+@keyframes heroZoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+.hero-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: heroReveal 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hero-reveal-1 { animation-delay: 0.2s; }
+.hero-reveal-2 { animation-delay: 0.4s; }
+.hero-reveal-3 { animation-delay: 0.6s; }
+.hero-reveal-4 { animation-delay: 0.9s; }
+@keyframes heroReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
 `}</style>
       <Toaster position="top-right" richColors />
       <Header className="reveal reveal-1"
