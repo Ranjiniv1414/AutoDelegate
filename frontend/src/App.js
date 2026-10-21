@@ -233,4 +233,4 @@ function App() {
   );
 }
 
-export default App;
+import HomeView from "@/views/HomeView";
