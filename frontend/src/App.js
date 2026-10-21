@@ -172,7 +172,7 @@ function App() {
 </div>
 
       <Toaster position="top-right" richColors />
-      <Header className="reveal reveal-1"
+      <Header
         demoMode={demoMode}
         setDemoMode={setDemoMode}
         theme={theme}
@@ -181,7 +181,7 @@ function App() {
         onOpenHistory={() => setHistoryOpen(true)}
       />
 
-      <MeetingHistory className="reveal reveal-2"
+      <MeetingHistory 
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         onSelect={handleSelectHistory}
@@ -189,7 +189,7 @@ function App() {
       />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="reveal reveal-3 mb-8">
+        <div className="mb-8">
           <PipelineStepper active={stage} />
         </div>
 
