@@ -18,11 +18,12 @@ export default function HomeView({ onAnalyze, loading, loadingMsg }) {
       {/* OVERLAY CONTENT */}
       <div className="relative z-10 flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 w-full">
         
-        {/* Glassy, soft, transparent text with a cursive/rounded font */}
+        {/* Main Text - Very Transparent */}
         <div className="max-w-2xl w-full text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-semibold tracking-wide text-white/60 mix-blend-overlay drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-4">
+          <h1 className="text-4xl sm:text-5xl font-semibold tracking-wide text-white/20 mix-blend-overlay drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-4">
             Turn meeting decisions <br/>
-            <span className="bg-gradient-to-r from-indigo-300 to-purple-400 bg-clip-text text-transparent italic">
+            {/* Into actions - Slightly more solid/bright than the top text */}
+            <span className="bg-gradient-to-r from-indigo-300 to-purple-400 bg-clip-text text-transparent opacity-80 italic">
               into actions.
             </span>
           </h1>
