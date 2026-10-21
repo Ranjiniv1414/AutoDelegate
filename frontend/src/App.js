@@ -11,7 +11,9 @@ import { ApprovalView } from "@/views/ApprovalView";
 import { ExecutionView } from "@/views/ExecutionView";
 import { MeetingHistory } from "@/components/MeetingHistory";
 import {
-  uploadAudio, createMeeting, analyzeMeeting, editAction, executeAction, generateRoadmap, roadmapToActions,
+  uploadAudio, createMeeting, analyzeMeeting,
+  editAction, executeAction, generateRoadmap,
+  roadmapToActions,
 } from "@/lib/api";
 
 const STEP_STAGE = { home: 0, mapping: 1, analysis: 3, approval: 4, execution: 5 };
@@ -43,10 +45,10 @@ function App() {
     try {
       let m;
       if (mode === "audio") {
-        setLoadingMsg("Transcribing audio…");
+        setLoadingMsg("Transcribing audio...");
         m = await uploadAudio(audioFile);
       } else {
-        setLoadingMsg("Preparing transcript…");
+        setLoadingMsg("Preparing transcript...");
         m = await createMeeting(transcript);
       }
       setMeeting(m);
@@ -164,12 +166,12 @@ function App() {
   const stage = STEP_STAGE[step] ?? 0;
 
   return (
-    <div className="App min-h-screen">{/* Animated Background */}
-<div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none ad-backdrop">
-  <div className="animated-orb orb-1"></div>
-  <div className="animated-orb orb-2"></div>
-  <div className="animated-orb orb-3"></div>
-</div>
+    <div className="App min-h-screen">
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none ad-backdrop">
+        <div className="animated-orb orb-1"></div>
+        <div className="animated-orb orb-2"></div>
+        <div className="animated-orb orb-3"></div>
+      </div>
 
       <Toaster position="top-right" richColors />
       <Header
@@ -181,13 +183,13 @@ function App() {
         onOpenHistory={() => setHistoryOpen(true)}
       />
 
-      <MeetingHistory 
+      <MeetingHistory
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         onSelect={handleSelectHistory}
         activeId={meeting?.id}
       />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <PipelineStepper active={stage} />
@@ -230,7 +232,7 @@ function App() {
         )}
       </main>
 
-      <footer className="reveal reveal-5 border-t border-border py-6 text-center text-xs text-muted-foreground font-mono">
+      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground font-mono">
         AutoDelegate · MEETING → UNDERSTAND → REASON → PLAN → APPROVE → EXECUTE
       </footer>
     </div>
@@ -238,4 +240,3 @@ function App() {
 }
 
 export default App;
-
