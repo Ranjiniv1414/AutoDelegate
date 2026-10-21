@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { PipelineStepper } from "@/components/PipelineStepper";
-import { HomeView } from "@/views/HomeView";
+import HomeView from "@/views/HomeView";
 import { SpeakerMappingView } from "@/views/SpeakerMappingView";
 import { AnalysisView } from "@/views/AnalysisView";
 import { ApprovalView } from "@/views/ApprovalView";
