@@ -167,12 +167,6 @@ function App() {
 
   return (
     <div className="App min-h-screen">
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none ad-backdrop">
-        <div className="animated-orb orb-1"></div>
-        <div className="animated-orb orb-2"></div>
-        <div className="animated-orb orb-3"></div>
-      </div>
-
       <Toaster position="top-right" richColors />
       <Header
         demoMode={demoMode}
