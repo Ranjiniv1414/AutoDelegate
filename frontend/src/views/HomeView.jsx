@@ -6,23 +6,35 @@ export default function HomeView({ onAnalyze, loading, loadingMsg }) {
   return (
     <div className="relative min-h-screen w-full flex flex-col overflow-hidden bg-black font-[Poppins,Quicksand,sans-serif]">
       
-      {/* FULL IMAGE */}
+      {/* CSS FOR THE WIND/MOVEMENT EFFECT */}
+      <style>{`
+        .wind-motion {
+          animation: windBlow 8s ease-in-out infinite alternate;
+          transform-origin: center center;
+        }
+        @keyframes windBlow {
+          0% { transform: scale(1) translateX(0px) rotate(0deg); }
+          50% { transform: scale(1.03) translateX(-5px) rotate(0.5deg); }
+          100% { transform: scale(1.05) translateX(5px) rotate(-0.5deg); }
+        }
+      `}</style>
+
+      {/* FULL IMAGE WITH WIND EFFECT */}
       <div className="absolute inset-0 z-0">
         <img 
           src="/hero.jpg" 
           alt="Hero Background" 
-          className="w-full h-full object-cover object-center"
+          className="wind-motion w-full h-full object-cover object-center"
         />
       </div>
 
       {/* OVERLAY CONTENT */}
       <div className="relative z-10 flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 w-full">
         
-        {/* Main Text - Very Transparent */}
+        {/* Main Text */}
         <div className="max-w-2xl w-full text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-semibold tracking-wide text-white/20 mix-blend-overlay drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-4">
+          <h1 className="text-4xl sm:text-5xl font-semibold tracking-wide text-white/30 mix-blend-overlay drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-4">
             Turn meeting decisions <br/>
-            {/* Into actions - Slightly more solid/bright than the top text */}
             <span className="bg-gradient-to-r from-indigo-300 to-purple-400 bg-clip-text text-transparent opacity-80 italic">
               into actions.
             </span>
