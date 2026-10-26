@@ -4,23 +4,22 @@ export default function HomeView({ onAnalyze, loading, loadingMsg }) {
   const [transcript, setTranscript] = useState("Ravi: The login bug is still there.\nPriya: I'll fix the login bug by Friday.\nArun: I'll test the fix on Saturday.");
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col overflow-hidden bg-black font-[Poppins,Quicksand,sans-serif]">
+    <div className="relative min-h-screen w-full flex flex-col font-[Poppins,Quicksand,sans-serif]">
       
-      {/* FULL VIDEO BACKGROUND (REPLACES THE IMAGE) */}
-      <div className="absolute inset-0 z-0">
+      {/* FULL SCREEN VIDEO - FIXED TO COVER ENTIRE SCREEN */}
+      <div className="fixed inset-0 z-0 bg-black">
         <video 
           autoPlay 
           loop 
           muted 
           playsInline 
-          className="w-full h-full object-cover object-[center_20%]"
+          className="w-full h-full object-cover object-center"
         >
           <source src="/hero.mp4" type="video/mp4" />
-          {/* Fallback image if video fails to load */}
           <img 
             src="/hero.jpg" 
             alt="Hero Background" 
-            className="w-full h-full object-cover object-[center_20%]"
+            className="w-full h-full object-cover object-center"
           />
         </video>
         {/* Slight dark overlay for text readability */}
@@ -30,8 +29,7 @@ export default function HomeView({ onAnalyze, loading, loadingMsg }) {
       {/* OVERLAY CONTENT */}
       <div className="relative z-10 flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 w-full py-12">
         
-        {/* Main Text - Responsive sizing */}
-        <div className="max-w-3xl lg:max-w-5xl w-full text-center mb-10 lg:mb-16">
+        <div className="max-w-3xl lg:max-w-5xl w-full text-center mb-10 lg:mb-16 mt-10">
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-semibold tracking-wide text-white/30 mix-blend-overlay drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-4 lg:mb-6">
             Turn meeting decisions <br/>
             <span className="bg-gradient-to-r from-indigo-300 to-purple-400 bg-clip-text text-transparent opacity-80 italic">
@@ -43,7 +41,7 @@ export default function HomeView({ onAnalyze, loading, loadingMsg }) {
           </p>
         </div>
 
-        {/* TRANSPARENT GLASS INPUT BOX - Wider on desktop */}
+        {/* TRANSPARENT GLASS INPUT BOX */}
         <div className="w-full max-w-2xl lg:max-w-4xl mx-auto bg-white/5 backdrop-blur-lg border border-white/20 rounded-2xl p-6 lg:p-8 shadow-2xl">
           <textarea
             value={transcript}
