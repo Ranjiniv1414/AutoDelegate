@@ -168,16 +168,16 @@ function App() {
   return (
     <div className="App min-h-screen relative font-[Poppins,Quicksand,sans-serif]">
       
-      {/* GLOBAL BACKGROUND VIDEO - FILLS THE WHOLE SCREEN */}
+      {/* FULL SCREEN BACKGROUND VIDEO */}
       <div className="fixed inset-0 z-0 bg-black">
-        <video autoPlay loop muted playsInline className="w-full h-full object-cover object-[center_20%]">
+        <video autoPlay loop muted playsInline className="w-full h-full object-cover object-center">
           <source src="/hero.mp4" type="video/mp4" />
-          <img src="/hero.jpg" className="w-full h-full object-cover object-[center_20%]" alt="fallback" />
+          <img src="/hero.jpg" alt="fallback" className="w-full h-full object-cover object-center" />
         </video>
         <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
-      {/* ALL CONTENT SITS ON TOP */}
+      {/* ALL CONTENT SITS ON TOP OF THE VIDEO */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <Toaster position="top-right" richColors />
         
@@ -197,10 +197,10 @@ function App() {
           activeId={meeting?.id}
         />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 flex flex-col justify-center">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 w-full flex-1 flex flex-col">
           
-          {/* STEPS AT THE TOP */}
-          <div className="mb-8 w-full max-w-4xl mx-auto">
+          {/* STEPS AT THE TOP - GLASS BOX SO THEY ARE ALWAYS VISIBLE */}
+          <div className="mb-10 w-full max-w-5xl mx-auto bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl">
             <PipelineStepper active={stage} />
           </div>
 
