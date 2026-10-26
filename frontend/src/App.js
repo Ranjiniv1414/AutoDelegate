@@ -166,70 +166,87 @@ function App() {
   const stage = STEP_STAGE[step] ?? 0;
 
   return (
-    <div className="App min-h-screen">
-      <Toaster position="top-right" richColors />
-      <Header
-        demoMode={demoMode}
-        setDemoMode={setDemoMode}
-        theme={theme}
-        toggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-        onReset={reset}
-        onOpenHistory={() => setHistoryOpen(true)}
-      />
+    <div className="App min-h-screen relative font-[Poppins,Quicksand,sans-serif]">
+      
+      {/* GLOBAL BACKGROUND VIDEO - FILLS THE WHOLE SCREEN */}
+      <div className="fixed inset-0 z-0 bg-black">
+        <video autoPlay loop muted playsInline className="w-full h-full object-cover object-[center_20%]">
+          <source src="/hero.mp4" type="video/mp4" />
+          <img src="/hero.jpg" className="w-full h-full object-cover object-[center_20%]" alt="fallback" />
+        </video>
+        <div className="absolute inset-0 bg-black/40"></div>
+      </div>
 
-      <MeetingHistory
-        open={historyOpen}
-        onOpenChange={setHistoryOpen}
-        onSelect={handleSelectHistory}
-        activeId={meeting?.id}
-      />
+      {/* ALL CONTENT SITS ON TOP */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Toaster position="top-right" richColors />
+        
+        <Header
+          demoMode={demoMode}
+          setDemoMode={setDemoMode}
+          theme={theme}
+          toggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+          onReset={reset}
+          onOpenHistory={() => setHistoryOpen(true)}
+        />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <PipelineStepper active={stage} />
-        </div>
+        <MeetingHistory
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          onSelect={handleSelectHistory}
+          activeId={meeting?.id}
+        />
 
-        {step === "home" && (
-          <HomeView onAnalyze={handleIngest} loading={loading} loadingMsg={loadingMsg} />
-        )}
-        {step === "mapping" && meeting && (
-          <SpeakerMappingView meeting={meeting} onConfirm={handleConfirmParticipants} loading={loading} />
-        )}
-        {step === "analysis" && meeting && (
-          <AnalysisView
-            meeting={meeting}
-            onProceed={() => setStep("approval")}
-            onGenerateRoadmap={handleGenerateRoadmap}
-            roadmapLoading={roadmapLoading}
-            onSendToApprovals={handleSendRoadmapToApprovals}
-            sendingToApprovals={sendingToApprovals}
-          />
-        )}
-        {step === "approval" && meeting && (
-          <ApprovalView
-            meeting={meeting}
-            demoMode={demoMode}
-            busyIds={busyIds}
-            onUpdateAction={updateActionStatus}
-            onEditAction={handleEditAction}
-            onExecuteAll={handleExecuteAll}
-          />
-        )}
-        {step === "execution" && meeting && (
-          <ExecutionView
-            meeting={meeting}
-            busyIds={busyIds}
-            onExecute={runExecute}
-            onRetry={runExecute}
-            onRestart={reset}
-          />
-        )}
-      </main>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 flex flex-col justify-center">
+          
+          {/* STEPS AT THE TOP */}
+          <div className="mb-8 w-full max-w-4xl mx-auto">
+            <PipelineStepper active={stage} />
+          </div>
 
-      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground font-mono">
-        AutoDelegate · MEETING → UNDERSTAND → REASON → PLAN → APPROVE → EXECUTE
-      </footer>
+          {step === "home" && (
+            <HomeView onAnalyze={handleIngest} loading={loading} loadingMsg={loadingMsg} />
+          )}
+          {step === "mapping" && meeting && (
+            <SpeakerMappingView meeting={meeting} onConfirm={handleConfirmParticipants} loading={loading} />
+          )}
+          {step === "analysis" && meeting && (
+            <AnalysisView
+              meeting={meeting}
+              onProceed={() => setStep("approval")}
+              onGenerateRoadmap={handleGenerateRoadmap}
+              roadmapLoading={roadmapLoading}
+              onSendToApprovals={handleSendRoadmapToApprovals}
+              sendingToApprovals={sendingToApprovals}
+            />
+          )}
+          {step === "approval" && meeting && (
+            <ApprovalView
+              meeting={meeting}
+              demoMode={demoMode}
+              busyIds={busyIds}
+              onUpdateAction={updateActionStatus}
+              onEditAction={handleEditAction}
+              onExecuteAll={handleExecuteAll}
+            />
+          )}
+          {step === "execution" && meeting && (
+            <ExecutionView
+              meeting={meeting}
+              busyIds={busyIds}
+              onExecute={runExecute}
+              onRetry={runExecute}
+              onRestart={reset}
+            />
+          )}
+        </main>
+
+        <footer className="border-t border-white/10 py-6 text-center text-xs text-white/50 font-mono mt-auto">
+          AutoDelegate · MEETING → UNDERSTAND → REASON → PLAN → APPROVE → EXECUTE
+        </footer>
+      </div>
     </div>
   );
 }
+
 export default App;
